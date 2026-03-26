@@ -1,0 +1,23 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Sports Calendar{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'events/styles.css' %}">
+</head>
+<body>
+    <nav class="topbar">
+        <strong>Sports Calendar</strong>
+        <a href="{% url 'events-page' %}">Home</a>
+        <a href="{% url 'events-page' %}">Events</a>
+        <a href="#">Teams</a>
+        <a href="#">About</a>
+        <a href="{% url 'events-manage-page' %}">Manage</a>
+    </nav>
+    <main class="page">
+        {% block body %}{% endblock %}
+    </main>
+</body>
+</html>

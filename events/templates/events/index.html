@@ -1,0 +1,166 @@
+{% extends 'base.html' %}
+
+{% block title %}Events · Sports Calendar{% endblock %}
+
+{% block body %}
+    <div class="container">
+        <section class="stack">
+            {% if error_message %}
+                <div class="error">{{ error_message }}</div>
+            {% endif %}
+            {% if success_message %}
+                <div class="success">{{ success_message }}</div>
+            {% endif %}
+
+            <article class="card">
+                <h2>Add Event</h2>
+                <form method="post">
+                    {% csrf_token %}
+                    <label for="title">Title</label>
+                    <input id="title" name="title" type="text" required>
+
+                    <label for="start_datetime">Date &amp; time</label>
+                    <input id="start_datetime" name="start_datetime" type="datetime-local" required>
+
+                    <label for="sport_id">Sport</label>
+                    <select id="sport_id" name="sport_id" required>
+                        <option value="">Select sport</option>
+                        {% for sport in sports %}
+                            <option value="{{ sport.id }}">{{ sport.name }}</option>
+                        {% endfor %}
+                    </select>
+
+                    <label for="venue_id">Venue</label>
+                    <select id="venue_id" name="venue_id">
+                        <option value="">No venue</option>
+                        {% for venue in venues %}
+                            <option value="{{ venue.id }}">{{ venue.name }} ({{ venue.city }}, {{ venue.country }})</option>
+                        {% endfor %}
+                    </select>
+
+                    <label for="status">Status</label>
+                    <select id="status" name="status">
+                        {% for value, label in status_choices %}
+                            <option value="{{ value }}">{{ label }}</option>
+                        {% endfor %}
+                    </select>
+
+                    <label for="round_label">Round</label>
+                    <input id="round_label" name="round_label" type="text" placeholder="Regular season">
+
+                    <label for="description">Description</label>
+                    <textarea id="description" name="description" rows="3"></textarea>
+
+                    <label for="participant-search">Participants</label>
+                    <input id="participant-search" type="text" placeholder="Search participants...">
+                    <div id="participant-list" class="participant-list">
+                        {% for competitor in competitors %}
+                            <label class="participant-option" data-search="{{ competitor.name|lower }} {{ competitor.sport_name|lower }}">
+                                <input type="checkbox" name="participant_ids" value="{{ competitor.id }}">
+                                {{ competitor.name }} ({{ competitor.sport_name }})
+                            </label>
+                        {% empty %}
+                            <p class="muted">No participants available yet.</p>
+                        {% endfor %}
+                    </div>
+
+                    <button type="submit">Save Event</button>
+                </form>
+            </article>
+
+            <a class="button button--ghost" href="{% url 'events-manage-page' %}">Manage sports &amp; venues</a>
+        </section>
+
+        <section class="stack">
+            <article class="card">
+                <div class="card-header">
+                    <div>
+                        <h2>Events</h2>
+                        <p class="muted">Showing {{ events|length }} result{{ events|length|pluralize }}</p>
+                    </div>
+                    <form method="get" class="filters-form">
+                        <div class="filters-grid">
+                            <label>
+                                <span>Sport</span>
+                                <select name="sport">
+                                    <option value="">All</option>
+                                    {% for sport in sports %}
+                                        <option value="{{ sport.id }}" {% if active_filters.sport == sport.id|stringformat:'s' %}selected{% endif %}>{{ sport.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </label>
+                            <label>
+                                <span>Status</span>
+                                <select name="status">
+                                    <option value="">Any</option>
+                                    {% for value, label in status_choices %}
+                                        <option value="{{ value }}" {% if active_filters.status == value %}selected{% endif %}>{{ label }}</option>
+                                    {% endfor %}
+                                </select>
+                            </label>
+                            <label>
+                                <span>Start</span>
+                                <input type="date" name="date_from" value="{{ active_filters.date_from }}">
+                            </label>
+                            <label>
+                                <span>End</span>
+                                <input type="date" name="date_to" value="{{ active_filters.date_to }}">
+                            </label>
+                        </div>
+                        <div class="button-row">
+                            <button type="submit">Apply</button>
+                            <a class="button button--ghost" href="{% url 'events-page' %}">Clear</a>
+                        </div>
+                    </form>
+                </div>
+
+                {% if filter_messages %}
+                    <div class="error">
+                        {% for message in filter_messages %}
+                            <p>{{ message }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                {% if events %}
+                    <div class="event-list">
+                        {% for event in events %}
+                            <article class="event">
+                                <h3><a href="{% url 'event-detail-page' event.id %}">{{ event.title }}</a></h3>
+                                <div class="meta">{{ event.start_datetime|date:"N j, Y H:i" }} | {{ event.sport_name }}</div>
+                                <div class="meta">Status: {{ event.status }}</div>
+                                {% if event.venue %}
+                                    <div class="meta">Venue: {{ event.venue }}</div>
+                                {% endif %}
+                                {% if event.participants %}
+                                    <div class="meta">Participants: {{ event.participants|join:", " }}</div>
+                                {% endif %}
+                            </article>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="muted">No events match the selected filters.</p>
+                {% endif %}
+            </article>
+        </section>
+    </div>
+
+    <script>
+        (function () {
+            const searchInput = document.getElementById("participant-search");
+            const options = document.querySelectorAll(".participant-option");
+
+            if (!searchInput || !options.length) {
+                return;
+            }
+
+            searchInput.addEventListener("input", function () {
+                const query = searchInput.value.trim().toLowerCase();
+                options.forEach(function (option) {
+                    const haystack = option.dataset.search || "";
+                    option.style.display = haystack.includes(query) ? "flex" : "none";
+                });
+            });
+        })();
+    </script>
+{% endblock %}

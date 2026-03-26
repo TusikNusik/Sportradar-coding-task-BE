@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+
+{% block title %}Manage Data · Sports Calendar{% endblock %}
+
+{% block body %}
+    <div class="stack manage-stack">
+        {% if error_message %}
+            <div class="error">{{ error_message }}</div>
+        {% endif %}
+        {% if success_message %}
+            <div class="success">{{ success_message }}</div>
+        {% endif %}
+
+        <article class="card">
+            <h2>Add Sport</h2>
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="create_sport">
+                <label for="sport_name">Sport name</label>
+                <input id="sport_name" name="sport_name" type="text" required>
+                <button type="submit">Save Sport</button>
+            </form>
+        </article>
+
+        <article class="card">
+            <h2>Add Venue</h2>
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="create_venue">
+                <label for="venue_name">Venue name</label>
+                <input id="venue_name" name="venue_name" type="text" required>
+                <div class="inline-inputs">
+                    <div>
+                        <label for="city">City</label>
+                        <input id="city" name="city" type="text" required>
+                    </div>
+                    <div>
+                        <label for="country">Country</label>
+                        <input id="country" name="country" type="text" required>
+                    </div>
+                </div>
+                <label for="address">Address</label>
+                <input id="address" name="address" type="text">
+                <label for="capacity">Capacity</label>
+                <input id="capacity" name="capacity" type="number" min="1">
+                <label class="checkbox-row" for="is_indoor">
+                    <input id="is_indoor" name="is_indoor" type="checkbox">
+                    Indoor venue
+                </label>
+                <button type="submit">Save Venue</button>
+            </form>
+        </article>
+
+        <article class="card">
+            <h2>Add Participant/Team</h2>
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="create_competitor">
+                <label for="competitor_name">Name</label>
+                <input id="competitor_name" name="competitor_name" type="text" required>
+                <label for="short_name">Short name</label>
+                <input id="short_name" name="short_name" type="text">
+                <label for="competitor_type">Type</label>
+                <select id="competitor_type" name="competitor_type">
+                    {% for value, label in competitor_type_choices %}
+                        <option value="{{ value }}">{{ label }}</option>
+                    {% endfor %}
+                </select>
+                <label for="competitor_sport_id">Sport</label>
+                <select id="competitor_sport_id" name="competitor_sport_id" required>
+                    <option value="">Select sport</option>
+                    {% for sport in sports %}
+                        <option value="{{ sport.id }}">{{ sport.name }}</option>
+                    {% endfor %}
+                </select>
+                <button type="submit">Save Participant</button>
+            </form>
+        </article>
+
+    </div>
+{% endblock %}

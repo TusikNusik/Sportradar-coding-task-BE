@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ event.title }} · Sports Calendar{% endblock %}
+
+{% block body %}
+    <div class="detail-wrap">
+        <div class="card">
+            <p><a href="{% url 'events-page' %}">&larr; Back to all events</a></p>
+            <h1>{{ event.title }}</h1>
+            <p><strong>Date:</strong> {{ event.start_datetime|date:"N j, Y H:i" }}</p>
+            <p><strong>Sport:</strong> {{ event.sport_name }}</p>
+            <p><strong>Status:</strong> {{ event.status }}</p>
+            {% if event.venue %}
+                <p><strong>Venue:</strong> {{ event.venue }}</p>
+            {% endif %}
+            {% if event.round_label %}
+                <p><strong>Round:</strong> {{ event.round_label }}</p>
+            {% endif %}
+            {% if event.description %}
+                <p><strong>Description:</strong> {{ event.description }}</p>
+            {% endif %}
+            <h3>Participants</h3>
+            <ul>
+                {% for participant in event.participants %}
+                    <li>{{ participant }}</li>
+                {% empty %}
+                    <li>No participants assigned</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+{% endblock %}
