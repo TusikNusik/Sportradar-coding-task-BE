@@ -11,6 +11,8 @@ from .models import Competitor, Event, EventParticipant, Sport, Venue
 
 
 def _events_queryset():
+    # Centralized queryset that pulls related sport/venue and ordered participants
+    # up front so listing/detail views avoid N+1 lookups.
     return (
         Event.objects.select_related("_sport", "_venue")
         .prefetch_related(
@@ -151,6 +153,7 @@ def _handle_create_event(post_data):
     if not title or not start_datetime_raw or not sport_id:
         return "Title, date/time, and sport are required.", None
 
+    # Accept the HTML datetime-local value and normalize it to an aware datetime.
     start_datetime = parse_datetime(start_datetime_raw)
     if start_datetime is None:
         return "Invalid date/time format.", None
@@ -173,6 +176,7 @@ def _handle_create_event(post_data):
     competitors = list(
         Competitor.objects.filter(pk__in=participant_ids, _sport=sport)
     )
+    
     with transaction.atomic():
         event = Event(
             title=title,
@@ -226,6 +230,7 @@ def events_page(request):
     if filters["date_from"]:
         parsed = _parse_date(filters["date_from"])
         if parsed:
+            # Convert date-only filters to aware datetimes before querying.
             start_bound = make_aware(datetime.combine(parsed, time.min), tz)
             queryset = queryset.filter(start_datetime__gte=start_bound)
         else:
